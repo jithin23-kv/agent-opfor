@@ -4,7 +4,7 @@ import {
   captureSessionFromResponse,
   resolveSessionPlan,
 } from "./httpClient.js";
-import { expandEnvInHeaders, getEnv } from "../lib/env.js";
+import { expandEnvInBodyFields, expandEnvInHeaders, getEnv } from "../lib/env.js";
 import { invokeLocalTargetScript } from "../lib/localScriptTarget.js";
 import {
   buildPropagatedHeaders,
@@ -198,10 +198,17 @@ async function callHttp(
     return extract(rawText);
   };
 
+  const expandedBodyFields = config.bodyFields ? expandEnvInBodyFields(config.bodyFields) : undefined;
+  const applyBodyFields = (body: Record<string, unknown>): void => {
+    if (!expandedBodyFields) return;
+    for (const [path, value] of Object.entries(expandedBodyFields)) setByPath(body, path, value);
+  };
+
   const buildJsonBody = (promptValue: string): Record<string, unknown> => {
     const body: Record<string, unknown> = {};
     setByPath(body, config.promptPath?.trim() || "prompt", promptValue);
     applySessionToRequest(body, headers, sessionPlan, sessionId);
+    applyBodyFields(body);
     return body;
   };
 
@@ -219,6 +226,7 @@ async function callHttp(
         max_tokens: 500,
       };
       applySessionToRequest(openaiBody, headers, sessionPlan, sessionId);
+      applyBodyFields(openaiBody);
       if (hasPropagation && prop?.traceIdBodyField && propagationTraceId) {
         mergeTraceIdIntoJsonBody(openaiBody, prop.traceIdBodyField, propagationTraceId);
       }

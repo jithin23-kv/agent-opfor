@@ -23,22 +23,40 @@ export function getEnv(name: string): string | undefined {
   return provider(name);
 }
 
+function expandEnvInRecord(
+  record: Record<string, string>,
+  label: string
+): Record<string, string> {
+  const out: Record<string, string> = {};
+  for (const [k, v] of Object.entries(record)) {
+    out[k] = v.replace(/\$\{([^}]+)\}/g, (_, name) => {
+      const trimmed = name.trim();
+      const value = getEnv(trimmed);
+      if (value === undefined) {
+        log.warn(
+          `${label} "${k}" references undefined env var "${trimmed}" — sending it as empty.`
+        );
+      }
+      return value ?? "";
+    });
+  }
+  return out;
+}
+
 /**
  * Expands `${VAR}` references in header values via the configured env provider.
  * Shared by agent (`target.headers`) and MCP (`target.urlHeaders`) targets so
  * both surfaces resolve secrets the same way.
  */
 export function expandEnvInHeaders(headers: Record<string, string>): Record<string, string> {
-  const out: Record<string, string> = {};
-  for (const [k, v] of Object.entries(headers)) {
-    out[k] = v.replace(/\$\{([^}]+)\}/g, (_, name) => {
-      const trimmed = name.trim();
-      const value = getEnv(trimmed);
-      if (value === undefined) {
-        log.warn(`header "${k}" references undefined env var "${trimmed}" — sending it as empty.`);
-      }
-      return value ?? "";
-    });
-  }
-  return out;
+  return expandEnvInRecord(headers, "header");
+}
+
+/**
+ * Expands `${VAR}` references in static JSON body field values (`target.bodyFields`) —
+ * for tokens/secrets an endpoint expects in the request body rather than a header.
+ * Keys are dot-paths into the body, same convention as `promptPath`/`responsePath`.
+ */
+export function expandEnvInBodyFields(fields: Record<string, string>): Record<string, string> {
+  return expandEnvInRecord(fields, "body field");
 }

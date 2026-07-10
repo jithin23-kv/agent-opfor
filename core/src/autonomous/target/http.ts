@@ -10,6 +10,7 @@ import {
 } from "../../targets/httpClient.js";
 import type { TargetConfig } from "../lib/types.js";
 import { log } from "../../lib/logger.js";
+import { createLocalScriptTargetClient } from "./localScript.js";
 
 export type { HttpTargetMessage as TargetMessage };
 export type { HttpSendResult as TargetSendResult };
@@ -28,6 +29,7 @@ function toHttpConfig(config: TargetConfig): HttpTargetConfig {
     endpoint: config.endpoint,
     apiKey: config.apiKey,
     headers: config.headers,
+    bodyFields: config.bodyFields,
     mode: config.mode,
     promptPath: config.promptPath,
     responsePath: config.responsePath,
@@ -38,6 +40,7 @@ function toHttpConfig(config: TargetConfig): HttpTargetConfig {
 }
 
 export function createTargetClient(config: TargetConfig): TargetClient {
+  if (config.type === "local-script") return createLocalScriptTargetClient(config);
   const httpConfig = toHttpConfig(config);
   const plan = resolveSessionPlan(httpConfig);
   // Server-owned targets mint their own id, so threadId can't be the wire id.

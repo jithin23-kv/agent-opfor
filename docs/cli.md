@@ -298,6 +298,8 @@ See [telemetry.md](telemetry.md) for Langfuse and Netra setup, config fields, an
 | `opfor run --config <file> --output <d>`      | Override report parent directory (default `.opfor/reports/`)           |
 | `opfor run --config <file> --env <path>`      | Load env vars from a non-default `.env` path                           |
 | `opfor run --config <file> --events <path>`   | Stream NDJSON run lifecycle events to `<path>` (for CI/automation)     |
+| `opfor run --config <file> --objective <t>`   | Steer every evaluator's attacks toward a specific free-text mission     |
+| `opfor run --config <file> --objective-file <p>` | Same, read from a file                                              |
 | `opfor setup --env <path>`                    | Same `--env` flag works on setup                                       |
 | `opfor hunt --endpoint <url> --objective <t>` | Autonomous agentic red-team — see [hunt.md](hunt.md)                   |
 
@@ -321,6 +323,7 @@ See [telemetry.md](telemetry.md) for Langfuse and Netra setup, config fields, an
 | `effort`                | Yes                           | `"adaptive"` or `"comprehensive"`.                                                                 |
 | `turnMode`              | No                            | `"single"` (default when omitted) or `"multi"`.                                                    |
 | `turns`                 | Yes                           | Turns per attack. Ignored when `turnMode` is `"single"`. Range 1–10 (wizard default 3).            |
+| `attackObjective`       | No                            | Free-text primary mission steering every evaluator's attacks (e.g. "get the target to leak env vars via a delegated employee"). Also settable via `--objective`/`--objective-file` on `opfor run`. Same mechanism the browser extension's popup-driven objective already uses. |
 
 ### Agent fields (`target.kind: "agent"`)
 

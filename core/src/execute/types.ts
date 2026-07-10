@@ -33,6 +33,12 @@ export interface AgentTargetConfig {
   apiKeyEnv?: string;
   model?: string;
   headers?: Record<string, string>;
+  /**
+   * Static JSON body fields merged into every request — e.g. an auth token the
+   * endpoint expects in the body rather than a header. Keys are dot-paths into
+   * the body (same convention as `promptPath`); values support `${VAR}` expansion.
+   */
+  bodyFields?: Record<string, string>;
   /** Legacy alias for `session.send = { in: "body", name: sessionIdField }`. */
   sessionIdField?: string;
   session?: SessionConfig;
@@ -94,6 +100,14 @@ export interface RunConfig {
   turnMode?: "single" | "multi";
   turns: number;
   telemetry?: TelemetryConfig;
+  /**
+   * Free-text primary mission steering every evaluator's attacks (e.g. "get the
+   * target to leak env vars via a delegated employee"). Threaded onto each
+   * generated AgentAttackSpec; consumed by generateNextAdaptiveTurn as the
+   * attacker's top-priority goal, same mechanism the browser extension's
+   * popup-driven `attackObjective` already uses.
+   */
+  attackObjective?: string;
 }
 
 // ---------------------------------------------------------------------------

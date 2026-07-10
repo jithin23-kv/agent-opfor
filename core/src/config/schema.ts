@@ -100,6 +100,7 @@ const AgentTargetConfigSchema = z
     apiKeyEnv: z.string().optional(),
     model: z.string().optional(),
     headers: z.record(z.string(), z.string()).optional(),
+    bodyFields: z.record(z.string(), z.string()).optional(),
     sessionIdField: z.string().optional(),
     session: z
       .object({
@@ -163,6 +164,7 @@ export const RunConfigSchema = z
     turnMode: z.enum(["single", "multi"]).optional(),
     turns: z.number().int().positive().optional(),
     telemetry: z.unknown().optional(),
+    attackObjective: z.string().optional(),
   })
   .passthrough();
 

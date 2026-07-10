@@ -4,7 +4,7 @@
  */
 
 import type { SessionConfig } from "../execute/types.js";
-import { expandEnvInHeaders } from "../lib/env.js";
+import { expandEnvInBodyFields, expandEnvInHeaders } from "../lib/env.js";
 
 export const REQUEST_TIMEOUT_MS = 30_000;
 export const RATE_LIMIT_BACKOFF_MS = 5_000;
@@ -18,6 +18,8 @@ export interface HttpTargetConfig {
   endpoint: string;
   apiKey?: string;
   headers?: Record<string, string>;
+  /** Static JSON body fields merged into every request; values support `${VAR}` expansion. */
+  bodyFields?: Record<string, string>;
   mode: "stateless" | "stateful";
   promptPath?: string;
   responsePath?: string;
@@ -237,6 +239,12 @@ export async function httpSend(
     body = {};
     setByPath(body, config.promptPath?.trim() || "prompt", prompt);
     applySessionToRequest(body, headers, resolveSessionPlan(config), options.sessionId);
+  }
+
+  if (config.bodyFields) {
+    for (const [path, value] of Object.entries(expandEnvInBodyFields(config.bodyFields))) {
+      setByPath(body, path, value);
+    }
   }
 
   try {
